@@ -1,0 +1,58 @@
+#+TITLE:Drought awap grids 
+#+AUTHOR: Ivan Hanigan
+#+email: ivan.hanigan@anu.edu.au
+#+LaTeX_CLASS: article
+#+LaTeX_CLASS_OPTIONS: [a4paper]
+#+LATEX_HEADER: \usepackage{amssymb,amsmath}
+#+LATEX: \hypersetup{hidelinks=true}
+#+LATEX: \tableofcontents
+-----
+* worklog
+
+* data
+*** COMMENT main
+#+name:main
+#+begin_src R :session *R* :tangle main.R :exports none :eval no
+'name:main'
+# Project: DROUGHT-AWAP-GRIDS
+# Author: Your Name
+# Maintainer: Who to complain to <yourfault@somewhere.net>
+
+# This is the main file for the project
+# It should do very little except call the other files
+
+### Set the working directory
+setwd("/home/ivan_hanigan/projects/DROUGHT-AWAP-GRIDS")
+
+
+### Set any global variables here
+####################
+
+
+
+####################
+
+
+### Run the code
+source("code/load.R")
+source("code/clean.R")
+source("code/func.R")
+source("code/do.R")
+#+end_src
+*** step one get prediction points
+#+begin_src R :session *R* :tangle no :exports none :eval no  
+  library(rgdal)
+  indir <- "~/projects/DROUGHT-BOM-GRIDS/data_derived"
+  dir(indir)
+  
+  
+#+end_src
+*** step two extract from grids
+#+name:extract from awapgrids
+#+begin_src R :session *R* :tangle no :exports none :eval no
+  'name:extract from awapgrids'
+  indir  <- "~/data/AWAP_GRIDS/data"
+  infilelist <- dir(indir, pattern = ".tif$", full.names=T)
+  
+  
+#+end_src
