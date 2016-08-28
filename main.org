@@ -8,8 +8,74 @@
 #+LATEX: \tableofcontents
 -----
 * worklog
+** 2016-08-26 notes re set up github repository
+- I think this belongs on swish-climate-impact-assessment rather than ivanhanigan github
+- because that way more people might get involved
+** 2016-08-27-drought-awap-grids-notes re extract point
+#+name:notes re extract point-header
+#+begin_src markdown :tangle ~/projects/ivanhanigan.github.com.raw/_posts/2016-08-27-drought-awap-grids-notes-re-extract-point.md :exports none :eval no :padline no
+---
+name: drought-awap-grids-notes-re-extract-point
+layout: post
+title: drought-awap-grids-notes-re-extract-point
+date: 2016-08-27
+categories:
+- drought awap grids
+---
+
+## Background
+
+- The old DROUGHT-BOM-GRIDS data came from a Barnes IDW algorithm, at 25km (actually 0.25 decimal degrees) resolution
+- 1890-2008
+- Going forward the AWAP grids are Preferred
+- this is a quick and dirty approach
+
+## Methods
+
+- AWAP grids are 5km (0.05 dd) but this will take longer to process and is probably overkill for monthly total rainfall when focus is on drought
+- For the centroid point of each 0.25 dd extract the data value (might be better to take mean of sub-cells within each, plan for future)
+- compare this with old BOM GRIDS
+
+## Results
+
+![images/qc_awap_totals_200001.png](images/qc_awap_totals_200001.png)
+    
+
+### compare with bom grids for Jan 2000
+
+![images/qc_awap_200001_vs_bomgrids.png](images/qc_awap_200001_vs_bomgrids.png)
+
+### For a pixel (west wyalong my old home town)
+
+![images/qc_awap_1900_1908_vs_bomgrids_west_wyalong.png](images/qc_awap_1900_1908_vs_bomgrids_west_wyalong.png)
+
+#+end_src
+
+* COMMENT README
+#+name:README
+#+begin_src R :session *R* :tangle README.md :exports none :eval no
+# Title: DROUGHT-AWAP-GRIDS	
+
+- Creator: Ivan Hanigan
+- Contact Email:	ivan.hanigan@gmail.com
+
+Abstract: 
+===
+
+- Aim: To update the Australian drought dataset. Background: The old project DROUGHT BOM-GRIDS 
+- Methods: Using the Hutchinson Drought Index (Hanigan, I., Porfirio, L. and Hutchinson, M. (2012). The Hutchinson Drought Index Algorithm. https://github.com/ivanhanigan/HutchinsonDroughtIndex) compute the Drought Indices. Use the same 25km grids as the old BOM-GRIDS dataset, but use the new AWAP-GRIDS data.
+
+#+end_src
 
 * data
+*** COMMENT func
+#+name:func
+#+begin_src R :session *R* :tangle code/func.R :exports none :eval no
+'name:func'
+library(rgdal)
+library(raster)
+#+end_src
+
 *** COMMENT main
 #+name:main
 #+begin_src R :session *R* :tangle main.R :exports none :eval no
@@ -22,37 +88,130 @@
 # It should do very little except call the other files
 
 ### Set the working directory
-setwd("/home/ivan_hanigan/projects/DROUGHT-AWAP-GRIDS")
+projdir <- "~/projects/DROUGHT-AWAP-GRIDS"
+setwd(projdir)
 
 
-### Set any global variables here
-####################
-
-
-
-####################
-
-
-### Run the code
-source("code/load.R")
-source("code/clean.R")
-source("code/func.R")
-source("code/do.R")
 #+end_src
 *** step one get prediction points
 #+begin_src R :session *R* :tangle no :exports none :eval no  
-  library(rgdal)
+  projdir <- "~/projects/DROUGHT-AWAP-GRIDS"
+  setwd(projdir)
+  source("code/func.R")
+  
   indir <- "~/projects/DROUGHT-BOM-GRIDS/data_derived"
   dir(indir)
+  setwd(indir)
+  shp  <- readOGR(".", "grid_nsw")
+  setwd(projdir)
   
+  
+  str(shp)
+  shp2 <- rgeos::gCentroid(shp, byid = T)
+  plot(shp)
+  plot(shp2, add = T, pch = 16)
   
 #+end_src
 *** step two extract from grids
 #+name:extract from awapgrids
 #+begin_src R :session *R* :tangle no :exports none :eval no
   'name:extract from awapgrids'
+  
   indir  <- "~/data/AWAP_GRIDS/data"
   infilelist <- dir(indir, pattern = ".tif$", full.names=T)
+  infilelist <- infilelist[grep("total", infilelist)]
+  infilelist[grep("200001", infilelist)]
+  
+  for(ste in c("act", "nsw", "nt",  "qld", "sa",  "tas", "vic", "wa")){
+  #  ste  <- "act"
+    outfile_main  <- paste("rain_", ste, "1900_2015.csv", sep  = "")
+    indir_shp <- "~/projects/DROUGHT-BOM-GRIDS/data_derived"
+    #gsub("\\.shp","",gsub("grid_", "", dir(indir_shp, pattern = ".shp")))
+    setwd(indir_shp)
+    shp  <- readOGR(".", sprintf("grid_%s", ste))
+    setwd(projdir)
+    
+    
+    #str(shp)
+    shp2 <- rgeos::gCentroid(shp, byid = T)
+  #  plot(shp)
+  #  plot(shp2, add = T, pch = 16)
+  
+  
+      
+  for(i in 1:100){ # length(infilelist)){
+    #i = 1
+    infile <- infilelist[i]
+    outfile <- gsub(".tif", "", basename(infile))
+    y  <- substr(basename(infile), 8, 8 +3)
+    m  <- substr(basename(infile), 8 +4, 8+5)
+    
+    #print(infile)
+    r  <- raster(infile)
+    shpout <- shp
+    #plot(r)
+    #plot(shp2, add = T)
+    #shp2 <- shp
+    e <- extract(r, shp2)
+    #str(e)
+    #e[1]
+    shpout@data <- data.frame(shp@data, e)
+    #str(shpout@data)
+    #dir()
+    #writeOGR(shpout, "data_derived",
+    #  outfile
+    #  , driver = "ESRI Shapefile", overwrite_layer=T)
+    csvout <- shpout@data
+    csvout$the_geom  <- NULL
+    csvout$the_geom_p  <- NULL
+    csvout$wronglatit  <- NULL
+    names(csvout) <- gsub("^e$", "rain", names(csvout))
+    csvout$year <- as.numeric(y)
+    csvout$month <- as.numeric(m)
+  #  str(csvout)
+    write.table(csvout,
+              file.path("data_derived", outfile_main)
+              , sep = ",", append = i != 1,
+              col.names = i == 1, row.names = F)
+  }
+  }
+  # QC
+  ch <- swishdbtools::connect2postgres2("ewedb_staging")
+  qc <- dbGetQuery(ch,
+  "select *
+  from bom_grids.rain_nsw_1890_2008_4
+  where year = 2000 and month = 1")
+  
+  str(qc)
+  str(shpout@data)
+  
+  qc2 <- merge(shpout@data, qc, by = "gid")
+  qc2$the_geom  <- NULL
+  head(qc2)
+  png("figures_and_tables/qc_awap_200001_vs_bomgrids.png")
+  plot(qc2$rain, qc2$e)
+  dev.off()
+  
+  # QC2
+  qc2 <- read.csv(file.path("data_derived", outfile_main), as.is = T)
+  head(qc2)
+  qc2$date <- as.Date(paste(qc2$year, qc2$month, 1, sep = "-"))
+  head(table(qc2$gid))
+  
+  qc3 <- dbGetQuery(ch,
+  "select *
+  from bom_grids.rain_nsw_1890_2008_4
+  where gid = 7568")
+  qc3$date <- as.Date(paste(qc3$year, qc3$month, 1, sep = "-"))
+  
+  png("figures_and_tables/qc_awap_1900_1908_vs_bomgrids_west_wyalong.png")
+  with(qc2[qc2$gid == 7568,],
+       plot(date, rain, type = "l")
+       )
+  with(qc3[qc3$gid == 7568,],
+       lines(date, rain, col = 'red')
+       )
+  dev.off()
   
   
 #+end_src
