@@ -93,7 +93,7 @@ setwd(projdir)
 
 
 #+end_src
-*** step one get prediction points
+*** step one get prediction points (DEPRECATED TET)
 #+begin_src R :session *R* :tangle no :exports none :eval no  
   projdir <- "~/projects/DROUGHT-AWAP-GRIDS"
   setwd(projdir)
@@ -114,7 +114,7 @@ setwd(projdir)
 #+end_src
 *** step two extract from grids
 #+name:extract from awapgrids
-#+begin_src R :session *R* :tangle no :exports none :eval no
+#+begin_src R :session *R* :tangle main.R :exports none :eval no
   'name:extract from awapgrids'
   
   indir  <- "~/data/AWAP_GRIDS/data"
@@ -175,6 +175,12 @@ setwd(projdir)
               col.names = i == 1, row.names = F)
   }
   }
+#+end_src
+*** COMMENT QC
+#+name:QC
+#+begin_src R :session *R* :tangle code/qc_checks_against_old_bomgrids.R :exports none :eval no
+  'name:QC'
+
   # QC
   ch <- swishdbtools::connect2postgres2("ewedb_staging")
   qc <- dbGetQuery(ch,
