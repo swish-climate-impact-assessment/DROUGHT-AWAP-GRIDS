@@ -38,3 +38,22 @@ with(qc3[qc3$gid == 7568,],
      lines(date, rain, col = 'red')
      )
 dev.off()
+
+'name:QC'
+
+# QC
+ch <- swishdbtools::connect2postgres2("ewedb_staging")
+qc <- dbGetQuery(ch,
+"select *
+from bom_grids.rain_nsw_1890_2008_4
+where year = 1986 and month = 10")
+
+str(qc)
+str(shp@data)
+outdata2 <- shp
+outdata2@data <- data.frame(outdata2@data, qc[match(outdata2@data[,"gid"],
+                                                    qc[,"gid"]),
+                                              ])
+dir("figures_and_tables")
+writeOGR(outdata2, "figures_and_tables",
+         "qc_drought_bom_grids_nsw_1986_10", driver = "ESRI Shapefile")

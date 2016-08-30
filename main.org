@@ -196,7 +196,7 @@ library(HutchinsonDroughtIndex)
   }
   }
 #+end_src
-*** COMMENT QC
+*** COMMENT QC local againset BOMGRIDS
 #+name:QC
 #+begin_src R :session *shell* :tangle code/qc_checks_against_old_bomgrids.R :exports none :eval no
   'name:QC'
@@ -394,5 +394,69 @@ library(HutchinsonDroughtIndex)
   
   dev.off()
   
+  
+#+end_src
+*** COMMENT do_convert2shp
+#+name:do_convert2shp
+#+begin_src R :session *R* :tangle code/do_convert2shp.R :exports none :eval no
+  'name:do_convert2shp'
+  projdir <- "~/projects/DROUGHT-AWAP-GRIDS"
+  setwd(projdir)
+  source("code/func.R")
+  states  <- c("act", "nsw", "nt",  "qld", "sa",  "tas", "vic", "wa")
+  #for(ste in states[1:4]){
+    ste  <- "nsw"
+  
+    indir_shp <- "~/projects/DROUGHT-BOM-GRIDS/data_derived"
+    #gsub("\\.shp","",gsub("grid_", "", dir(indir_shp, pattern = ".shp")))
+    setwd(indir_shp)
+    shp  <- readOGR(".", sprintf("grid_%s", ste))
+    setwd(projdir)
+    #plot(shp)
+    infile <- paste("rain_",ste,"_1900_2015_drought.csv", sep = "")
+    indat <- read.csv(file.path("data_derived", infile), as.is = T)
+    #str(indat)
+    head(indat)
+    # do loop
+    for(y in c(2002:2003)){
+     # y  <- 2004
+      for(m in 1:12){
+      #  m  <- 4
+      m2 <- sprintf("%02d", m)
+    outfile_main  <- paste("drought_awap_grids_", ste, "_",y,"_",m2, sep  = "")
+  
+    indat_i <- indat[indat$year == y & indat$month == m,]
+    indat_i$drought_count_5  <- ifelse(indat_i$count >= 5, 1, 0)
+    #str(indat_i)
+    outdat <- shp
+    outdat@data <- data.frame(outdat@data, indat_i[match(outdat@data[,"gid"], indat_i[,"gid"]),])
+    writeOGR(outdat, "data_derived_shapefiles",
+     outfile_main
+     , driver = "ESRI Shapefile", overwrite_layer=T)
+      }
+    }
+  #}  
+#+end_src
+*** COMMENT QC local againset BOMGRIDS shapefile october 1986
+#+name:QC
+#+begin_src R :session *R* :tangle code/qc_checks_against_old_bomgrids.R :exports none :eval no
+  'name:QC'
+  
+  # QC
+  ch <- swishdbtools::connect2postgres2("ewedb_staging")
+  qc <- dbGetQuery(ch,
+  "select *
+  from bom_grids.rain_nsw_1890_2008_4
+  where year = 1986 and month = 10")
+  
+  str(qc)
+  str(shp@data)
+  outdata2 <- shp
+  outdata2@data <- data.frame(outdata2@data, qc[match(outdata2@data[,"gid"],
+                                                      qc[,"gid"]),
+                                                ])
+  dir("figures_and_tables")
+  writeOGR(outdata2, "figures_and_tables",
+           "qc_drought_bom_grids_nsw_1986_10", driver = "ESRI Shapefile")
   
 #+end_src
