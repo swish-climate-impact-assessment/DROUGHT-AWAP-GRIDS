@@ -13,20 +13,22 @@ states  <- c("act", "nsw", "nt",  "qld", "sa",  "tas", "vic", "wa")
   shp  <- readOGR(".", sprintf("grid_%s", ste))
   setwd(projdir)
   #plot(shp)
-  infile <- paste("rain_",ste,"_1900_2015_drought.csv", sep = "")
+for(m_i in c(6, 12)){
+  #m_i  <- 6
+  infile <- paste("rain_",ste,"_1900_2015_drought",m_i,".csv", sep = "")
   indat <- read.csv(file.path("data_derived", infile), as.is = T)
   #str(indat)
   head(indat)
   # do loop
-  for(y in c(2002:2003)){
-   # y  <- 2004
+  for(y in c(1986:2001,2004:2012)){
+    #y  <- 1986
     for(m in 1:12){
-    #  m  <- 4
+    #  m  <- 1
     m2 <- sprintf("%02d", m)
-  outfile_main  <- paste("drought_awap_grids_", ste, "_",y,"_",m2, sep  = "")
+  outfile_main  <- paste("drought_awap_grids_", ste, "_",y,"_",m2,"_roll",m_i, sep  = "")
 
   indat_i <- indat[indat$year == y & indat$month == m,]
-  indat_i$drought_count_5  <- ifelse(indat_i$count >= 5, 1, 0)
+  #indat_i$drought_count_5  <- ifelse(indat_i$count >= 5, 1, 0)
   #str(indat_i)
   outdat <- shp
   outdat@data <- data.frame(outdat@data, indat_i[match(outdat@data[,"gid"], indat_i[,"gid"]),])
@@ -35,4 +37,5 @@ states  <- c("act", "nsw", "nt",  "qld", "sa",  "tas", "vic", "wa")
    , driver = "ESRI Shapefile", overwrite_layer=T)
     }
   }
+}
 #}
