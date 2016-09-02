@@ -8,7 +8,7 @@ indir <- "data_derived"
 
 states  <- c("act", "nsw", "nt",  "qld", "sa",  "tas", "vic", "wa")
 
-for(ste in states[2]){
+for(ste in states[1]){
 #  ste  <- "act"
 infile <- paste("rain_",ste,"_1900_2015.csv", sep = "")
 
