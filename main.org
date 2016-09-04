@@ -53,7 +53,7 @@ categories:
 
 ** 2016-09-02-notes re get ready to predict-pasture-district-declared-drought-using-climatic-drought
 - changed do to take 6 or 12
-- the predictions go in CLimaticVAgricultural project
+- the predictions go in CLimaticVsAgricultural project
 
 * README
 #+name:README
