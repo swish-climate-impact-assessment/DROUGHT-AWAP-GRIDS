@@ -8,7 +8,7 @@
 # It should do very little except call the other files
 
 ### Set the working directory
-projdir <- "~/projects/DROUGHT-AWAP-GRIDS"
+projdir <- "~/projects/DROUGHT-AWAP-GRIDS/DROUGHT_AWAP_GRIDS_1900_2015"
 setwd(projdir)
 source("code/func.R")
 
