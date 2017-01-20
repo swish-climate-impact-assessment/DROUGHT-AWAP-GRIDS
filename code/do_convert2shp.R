@@ -1,11 +1,11 @@
 
 'name:do_convert2shp'
-projdir <- "~/projects/DROUGHT-AWAP-GRIDS"
+projdir <- "~/projects/DROUGHT-AWAP-GRIDS/DROUGHT_AWAP_GRIDS_1900_2015"
 setwd(projdir)
 source("code/func.R")
-states  <- c("act", "nsw", "nt",  "qld", "sa",  "tas", "vic", "wa")
-#for(ste in states[1:4]){
-  ste  <- "nsw"
+states  <- c("act",  "nt",  "qld", "sa",  "tas", "vic", "wa") # "nsw",
+for(ste in states){
+ # ste  <- "nsw"
 
   indir_shp <- "~/projects/DROUGHT-BOM-GRIDS/data_derived"
   #gsub("\\.shp","",gsub("grid_", "", dir(indir_shp, pattern = ".shp")))
@@ -21,9 +21,9 @@ for(m_i in c(6, 12)){
   head(indat)
   # do loop
   for(y in c(1986:2001,2004:2012)){
-    #y  <- 1986
+    #y  <- 2015
     for(m in 1:12){
-    #  m  <- 1
+    # m  <- 12
     m2 <- sprintf("%02d", m)
   outfile_main  <- paste("drought_awap_grids_", ste, "_",y,"_",m2,"_roll",m_i, sep  = "")
 
@@ -38,4 +38,4 @@ for(m_i in c(6, 12)){
     }
   }
 }
-#}
+}
